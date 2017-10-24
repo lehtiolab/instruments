@@ -160,6 +160,24 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id):
             save_ledger(ledger, ledgerfn)
 
 
+def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, noloop):
+    loop = False if noloop else True
+    while True:
+        check_success_transferred_files(ledger, ledgerfn, kantelehost,
+                                        client_id)
+        for file_done in [k for k, x in ledger.items() if x['remote_ok']]:
+            file_done = ledger[file_done]['fpath']
+            print('Finished with file {}: '
+                  '{}'.format(file_done, ledger[file_done]))
+            shutil.move(file_done,
+                        os.path.join(donebox, os.path.basename(file_done)))
+            del(ledger[file_done])
+        save_ledger(ledger, ledgerfn)
+        if not loop:
+            break
+        sleep(10)
+
+
 def main():
     outbox = sys.argv[1]
     donebox = sys.argv[2]
@@ -181,16 +199,7 @@ def main():
         register_outbox_files(ledger, ledgerfn, kantelehost, client_id)
         transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile)
         register_transferred_files(ledger, ledgerfn, kantelehost, client_id)
-        check_success_transferred_files(ledger, ledgerfn, kantelehost,
-                                        client_id)
-        for file_done in [k for k, x in ledger.items() if x['remote_ok']]:
-            file_done = ledger[file_done]['fpath']
-            print('Finished with file {}: '
-                  '{}'.format(file_done, ledger[file_done]))
-            shutil.move(file_done,
-                        os.path.join(donebox, os.path.basename(file_done)))
-            del(ledger[file_done])
-        save_ledger(ledger, ledgerfn)
+        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, noloop)
         if noloop:
             break
         sleep(10)
