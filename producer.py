@@ -160,8 +160,7 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id):
             save_ledger(ledger, ledgerfn)
 
 
-def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, noloop):
-    loop = False if noloop else True
+def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, globalloop):
     while True:
         check_success_transferred_files(ledger, ledgerfn, kantelehost,
                                         client_id)
@@ -173,7 +172,7 @@ def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, noloop):
                         os.path.join(donebox, os.path.basename(file_done)))
             del(ledger[file_done])
         save_ledger(ledger, ledgerfn)
-        if not loop:
+        if globalloop:
             break
         sleep(10)
 
@@ -186,9 +185,7 @@ def main():
     client_id = sys.argv[5]
     keyfile = sys.argv[6]
     transfer_location = sys.argv[7]  # SCP login@storageserver.com:/home/store
-    noloop = False
-    if len(sys.argv) == 9 and sys.argv[8] == 'noloop':
-        noloop = True
+    globalloop = False if len(sys.argv) == 9 and sys.argv[8] == 'noloop' else True
     try:
         with open(ledgerfn) as fp:
             ledger = json.load(fp)
@@ -199,8 +196,8 @@ def main():
         register_outbox_files(ledger, ledgerfn, kantelehost, client_id)
         transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile)
         register_transferred_files(ledger, ledgerfn, kantelehost, client_id)
-        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, noloop)
-        if noloop:
+        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, globalloop)
+        if not globalloop:
             break
         sleep(10)
 
