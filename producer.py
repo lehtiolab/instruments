@@ -1,4 +1,5 @@
 import sys
+import logging
 import os
 import json
 import hashlib
@@ -52,17 +53,17 @@ def save_ledger(ledger, ledgerfile):
 
 def transfer_file(fpath, transfer_location, keyfile):
     """Transfer location will be something like login@server:/path/to/storage"""
-    print('Transferring {} to {}'.format(fpath, transfer_location))
+    logging.info('Transferring {} to {}'.format(fpath, transfer_location))
     remote_path = os.path.join(transfer_location + '/', os.path.basename(fpath))
     subprocess.check_call(['pscp.exe', '-i', keyfile, fpath, remote_path])
 
 
 def collect_outbox(outbox, ledger, ledgerfn):
-    print('Checking outbox')
+    logging.info('Checking outbox')
     for fn in [os.path.join(outbox, x) for x in os.listdir(outbox)]:
         prod_date = str(os.path.getctime(fn))
         if fn not in ledger:
-            print('Found new file: {} produced {}'.format(fn, prod_date))
+            logging.info('Found new file: {} produced {}'.format(fn, prod_date))
             ledger[fn] = {'fpath': fn, 'md5': False,
                           'prod_date': str(os.path.getctime(fn)),
                           'registered': False, 'transferred': False,
@@ -73,12 +74,13 @@ def collect_outbox(outbox, ledger, ledgerfn):
             try:
                 produced_fn['md5'] = md5(produced_fn['fpath'])
             except FileNotFoundError:
+                logging.warning('Could not find file in outbox to check MD5')
                 continue
             save_ledger(ledger, ledgerfn)
 
 
 def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile):
-    print('Checking files to register')
+    logging.info('Checking files to register')
     for fn, produced_fn in ledger.items():
         if not produced_fn['registered']:
             fn = os.path.basename(produced_fn['fpath'])
@@ -91,10 +93,11 @@ def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile):
                 produced_fn['remote_id'] = js_resp['file_id']
                 produced_fn['registered'] = True
             elif js_resp['state'] == 'error':
-                print('Server reported an error', js_resp['msg'])
+                logging.warning('Server reported an error', js_resp['msg'])
                 if 'md5' in js_resp:
-                    print('Registered and local file MD5 do {} match'.format(
-                        '' if js_resp['md5'] == produced_fn['md5'] else 'NOT'))
+                    logging.warning('Registered and local file MD5 do {} match'
+                                    ''.format('' if js_resp['md5'] ==
+                                              produced_fn['md5'] else 'NOT'))
                     produced_fn['registered'] = True
                     produced_fn['remote_id'] = js_resp['file_id']
                 if js_resp['stored'] and js_resp['md5'] == produced_fn['md5']:
@@ -106,7 +109,8 @@ def transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile):
     print('Checking transfer of files')
     for produced_fn in ledger.values():
         if produced_fn['registered'] and not produced_fn['transferred']:
-            print('Transferring {}'.format(produced_fn['fpath']))
+            logging.info('Found file not registerered, not transferred: {}'
+                         ''.format(produced_fn['fpath']))
             try:
                 transfer_file(produced_fn['fpath'], transfer_location, keyfile)
             except RuntimeError:
@@ -125,17 +129,18 @@ def register_transferred_files(ledger, ledgerfn, kantelehost, client_id, certfil
             try:
                 js_resp = response.json()
             except JSONDecodeError:
-                print('Server error registering file, trying again later')
+                logging.warning('Server error registering file, will retry later')
                 continue
             if js_resp['state'] == 'error':
-                print('File with ID {} not registered yet'
-                      ''.format(produced_fn['remote_id']))
+                logging.warning('File with ID {} not registered yet'
+                                ''.format(produced_fn['remote_id']))
                 produced_fn.update({'md5': False, 'registered': False,
                                     'transferred': False,
                                     'remote_checking': False,
                                     'remote_ok': False})
             else:
-                print('Registered transfer of {}'.format(produced_fn['fpath']))
+                logging.info('Registered transfer of file '
+                             '{}'.format(produced_fn['fpath']))
                 produced_fn['remote_checking'] = True
             save_ledger(ledger, ledgerfn)
 
@@ -150,8 +155,8 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id, ce
             try:
                 js_resp = response.json()
             except JSONDecodeError:
-                print('Server error checking success transfer file, '
-                      'trying again later')
+                logging.warning('Server error checking success transfer file, '
+                             'trying again later')
                 continue
             if not js_resp['md5_state']:
                 continue
@@ -169,8 +174,8 @@ def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile, glob
                                         client_id, certfile)
         for file_done in [k for k, x in ledger.items() if x['remote_ok']]:
             file_done = ledger[file_done]['fpath']
-            print('Finished with file {}: '
-                  '{}'.format(file_done, ledger[file_done]))
+            logging.info('Finished with file {}: '
+                         '{}'.format(file_done, ledger[file_done]))
             try:
                 shutil.move(file_done,
                             os.path.join(donebox, os.path.basename(file_done)))
@@ -183,7 +188,15 @@ def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile, glob
         sleep(10)
 
 
+def set_logger():
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(message)s',
+                        handlers=[logging.StreamHandler(),
+                                  logging.FileHandler('filetransfer.log')])
+
+
 def main():
+    set_logger()
     outbox = sys.argv[1]
     donebox = sys.argv[2]
     ledgerfn = sys.argv[3]
