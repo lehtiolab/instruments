@@ -19,7 +19,7 @@ def md5(fnpath):
     return hash_md5.hexdigest()
 
 
-def check_transfer_success(host, fn_id, fpath, client_id, certfile):
+def check_transfer_success(host, fn_id, client_id, certfile):
     url = urljoin(host, 'files/md5/')
     params = {'fn_id': fn_id, 'client_id': client_id, 'ftype': 'raw'}
     return requests.get(url=url, params=params, verify=certfile)
@@ -70,7 +70,10 @@ def collect_outbox(outbox, ledger, ledgerfn):
             save_ledger(ledger, ledgerfn)
     for produced_fn in ledger.values():
         if not produced_fn['md5']:
-            produced_fn['md5'] = md5(produced_fn['fpath'])
+            try:
+                produced_fn['md5'] = md5(produced_fn['fpath'])
+            except FileNotFoundError:
+                continue
             save_ledger(ledger, ledgerfn)
 
 
@@ -143,8 +146,7 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id, ce
         if produced_fn['remote_checking'] and not produced_fn['remote_ok']:
             response = check_transfer_success(kantelehost,
                                               produced_fn['remote_id'],
-                                              produced_fn['fpath'], client_id,
-                                              certfile)
+                                              client_id, certfile)
             try:
                 js_resp = response.json()
             except JSONDecodeError:
