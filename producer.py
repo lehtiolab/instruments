@@ -105,27 +105,33 @@ def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile):
             save_ledger(ledger, ledgerfn)
 
 
-def transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile):
-    print('Checking transfer of files')
+def transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
+                          kantelehost, client_id, certfile):
+    logging.info('Checking transfer of files')
     for produced_fn in ledger.values():
         if produced_fn['registered'] and not produced_fn['transferred']:
             logging.info('Found file not registerered, not transferred: {}'
                          ''.format(produced_fn['fpath']))
             try:
                 transfer_file(produced_fn['fpath'], transfer_location, keyfile)
-            except RuntimeError:
-                pass
+            except subprocess.CalledProcessError:
+                logging.warning('Could not transfer {}'.format(
+                    produced_fn['fpath']))
             else:
                 produced_fn['transferred'] = True
                 save_ledger(ledger, ledgerfn)
+                register_transferred_files(ledger, ledgerfn, kantelehost,
+                                           client_id, certfile)
 
 
-def register_transferred_files(ledger, ledgerfn, kantelehost, client_id, certfile):
-    print('Register transfer of files if necessary')
+def register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
+                               certfile):
+    logging.info('Register transfer of files if necessary')
     for produced_fn in ledger.values():
         if produced_fn['transferred'] and not produced_fn['remote_checking']:
             response = register_transfer(kantelehost, produced_fn['remote_id'],
-                                         produced_fn['fpath'], client_id, certfile)
+                                         produced_fn['fpath'], client_id,
+                                         certfile)
             try:
                 js_resp = response.json()
             except JSONDecodeError:
@@ -145,8 +151,9 @@ def register_transferred_files(ledger, ledgerfn, kantelehost, client_id, certfil
             save_ledger(ledger, ledgerfn)
 
 
-def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id, certfile):
-    print('Check transfer of files')
+def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id,
+                                    certfile):
+    logging.info('Check transfer of files')
     for produced_fn in ledger.values():
         if produced_fn['remote_checking'] and not produced_fn['remote_ok']:
             response = check_transfer_success(kantelehost,
@@ -168,7 +175,8 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id, ce
             save_ledger(ledger, ledgerfn)
 
 
-def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile, globalloop):
+def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile,
+               globalloop):
     while True:
         check_success_transferred_files(ledger, ledgerfn, kantelehost,
                                         client_id, certfile)
@@ -205,7 +213,8 @@ def main():
     keyfile = sys.argv[6]
     certfile = sys.argv[7]
     transfer_location = sys.argv[8]  # SCP login@storageserver.com:/home/store
-    globalloop = False if len(sys.argv) == 10 and sys.argv[9] == 'noloop' else True
+    globalloop = (False if len(sys.argv) == 10 and sys.argv[9] == 'noloop'
+                  else True)
     try:
         with open(ledgerfn) as fp:
             ledger = json.load(fp)
@@ -213,10 +222,15 @@ def main():
         ledger = {}
     while True:
         collect_outbox(outbox, ledger, ledgerfn)
-        register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile)
-        transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile)
-        register_transferred_files(ledger, ledgerfn, kantelehost, client_id, certfile)
-        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile, globalloop)
+        register_outbox_files(ledger, ledgerfn, kantelehost, client_id,
+                              certfile)
+        transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
+                              kantelehost, client_id, certfile)
+        # registers are done after each transfer, this one is to wrap them up
+        register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
+                                   certfile)
+        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile,
+                   globalloop)
         if not globalloop:
             break
         sleep(10)
