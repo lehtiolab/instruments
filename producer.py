@@ -190,7 +190,8 @@ def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile,
                             os.path.join(donebox, os.path.basename(file_done)))
             except FileNotFoundError:
                 continue
-            del(ledger[file_done])
+            finally:
+                del(ledger[file_done])
         save_ledger(ledger, ledgerfn)
         if globalloop:
             break
