@@ -95,7 +95,8 @@ def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile):
             if js_resp['state'] == 'registered':
                 produced_fn['remote_id'] = js_resp['file_id']
                 produced_fn['registered'] = True
-                if js_resp['stored'] and js_resp['md5'] == produced_fn['md5']:
+                if ('stored' in js_resp and js_resp['stored'] and
+                        js_resp['md5'] == produced_fn['md5']):
                     produced_fn['transferred'] = True
             elif js_resp['state'] == 'error':
                 logging.warning('Server reported an error', js_resp['msg'])
