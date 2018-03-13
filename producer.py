@@ -55,7 +55,10 @@ def transfer_file(fpath, transfer_location, keyfile):
     """Transfer location will be something like login@server:/path/to/storage"""
     logging.info('Transferring {} to {}'.format(fpath, transfer_location))
     remote_path = os.path.join(transfer_location + '/', os.path.basename(fpath))
-    subprocess.check_call(['pscp.exe', '-i', keyfile, fpath, remote_path])
+    if sys.platform.startswith("win"):
+        subprocess.check_call(['pscp.exe', '-i', keyfile, fpath, remote_path])
+    else:
+        subprocess.check_call(['scp', '-i', keyfile, fpath, remote_path])
 
 
 def collect_outbox(outbox, ledger, ledgerfn):
