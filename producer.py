@@ -20,17 +20,17 @@ def md5(fnpath):
     return hash_md5.hexdigest()
 
 
-def check_transfer_success(host, fn_id, client_id, certfile):
+def check_transfer_success(host, fn_id, ftype, client_id, certfile):
     url = urljoin(host, 'files/md5/')
-    params = {'fn_id': fn_id, 'client_id': client_id, 'ftype': 'raw'}
+    params = {'fn_id': fn_id, 'client_id': client_id, 'ftype': ftype}
     return requests.get(url=url, params=params, verify=certfile)
 
 
-def register_transfer(host, fn_id, fpath, client_id, certfile):
+def register_transfer(host, fn_id, fpath, ftype, client_id, certfile):
     url = urljoin(host, 'files/transferred/')
     postdata = {'fn_id': fn_id, 'filename': os.path.basename(fpath),
                 'client_id': client_id,
-                'ftype': 'raw',
+                'ftype': ftype,
                 }
     return requests.post(url=url, data=postdata, verify=certfile)
 
@@ -67,7 +67,7 @@ def collect_outbox(outbox, ledger, ledgerfn):
         prod_date = str(os.path.getctime(fn))
         if fn not in ledger:
             logging.info('Found new file: {} produced {}'.format(fn, prod_date))
-            ledger[fn] = {'fpath': fn, 'md5': False,
+            ledger[fn] = {'fpath': fn, 'md5': False, 'ftype': 'raw',
                           'prod_date': str(os.path.getctime(fn)),
                           'registered': False, 'transferred': False,
                           'remote_checking': False, 'remote_ok': False}
@@ -135,7 +135,8 @@ def register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
     for produced_fn in ledger.values():
         if produced_fn['transferred'] and not produced_fn['remote_checking']:
             response = register_transfer(kantelehost, produced_fn['remote_id'],
-                                         produced_fn['fpath'], client_id,
+                                         produced_fn['fpath'],
+                                         produced_fn['ftype'], client_id,
                                          certfile)
             try:
                 js_resp = response.json()
@@ -163,6 +164,7 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id,
         if produced_fn['remote_checking'] and not produced_fn['remote_ok']:
             response = check_transfer_success(kantelehost,
                                               produced_fn['remote_id'],
+                                              produced_fn['ftype'],
                                               client_id, certfile)
             try:
                 js_resp = response.json()
