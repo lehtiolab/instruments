@@ -77,7 +77,7 @@ def main():
         p.save_ledger(ledger, ledgerfn)
     if not ledger[fnpath]['md5']:
         ledger[fnpath]['md5'] = p.md5(fnpath)
-    p.register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile)
+    p.register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile, claimed=True)
     p.transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
                             kantelehost, client_id, certfile)
     p.register_transferred_files(ledger, ledgerfn, kantelehost, client_id,

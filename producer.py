@@ -35,13 +35,14 @@ def register_transfer(host, fn_id, fpath, ftype, client_id, certfile):
     return requests.post(url=url, data=postdata, verify=certfile)
 
 
-def register_file(host, fn, fn_md5, size, date, client_id, certfile):
+def register_file(host, fn, fn_md5, size, date, client_id, certfile, claimed):
     url = urljoin(host, 'files/register/')
     postdata = {'fn': fn,
                 'client_id': client_id,
                 'md5': fn_md5,
                 'size': size,
                 'date': date,
+                'claimed': claimed,
                 }
     return requests.post(url=url, data=postdata, verify=certfile)
 
@@ -82,7 +83,7 @@ def collect_outbox(outbox, ledger, ledgerfn):
             save_ledger(ledger, ledgerfn)
 
 
-def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile):
+def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile, claimed=False):
     logging.info('Checking files to register')
     for fn, produced_fn in ledger.items():
         if not produced_fn['registered']:
@@ -90,7 +91,7 @@ def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile):
             size = os.path.getsize(produced_fn['fpath'])
             reg_response = register_file(kantelehost, fn, produced_fn['md5'],
                                          size, produced_fn['prod_date'],
-                                         client_id, certfile)
+                                         client_id, certfile, claimed)
             js_resp = reg_response.json()
             if js_resp['state'] == 'registered':
                 produced_fn['remote_id'] = js_resp['file_id']
