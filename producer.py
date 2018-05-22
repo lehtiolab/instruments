@@ -220,9 +220,8 @@ def main():
     kantelehost = sys.argv[4]  # http://host.com/kantele
     client_id = sys.argv[5]
     keyfile = sys.argv[6]
-    certfile = sys.argv[7]
-    transfer_location = sys.argv[8]  # SCP login@storageserver.com:/home/store
-    globalloop = (False if len(sys.argv) == 10 and sys.argv[9] == 'noloop'
+    transfer_location = sys.argv[7]  # SCP login@storageserver.com:/home/store
+    globalloop = (False if len(sys.argv) == 9 and sys.argv[8] == 'noloop'
                   else True)
     try:
         with open(ledgerfn) as fp:
