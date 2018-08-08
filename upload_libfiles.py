@@ -61,8 +61,8 @@ def main():
     kantelehost = sys.argv[5]  # http://host.com/kantele
     client_id = sys.argv[6]
     keyfile = sys.argv[7]
-    certfile = sys.argv[8]
-    transfer_location = sys.argv[9]  # SCP login@storageserver.com:/home/store
+    certfile = None
+    transfer_location = sys.argv[8]  # SCP login@storageserver.com:/home/store
     try:
         with open(ledgerfn) as fp:
             ledger = json.load(fp)
