@@ -20,23 +20,25 @@ def md5(fnpath):
     return hash_md5.hexdigest()
 
 
-def check_transfer_success(host, fn_id, ftype, client_id, certfile):
-    url = urljoin(host, 'files/md5/')
+def check_transfer_success(host, urlpath, fn_id, ftype, client_id, **getkwargs):
+    url = urljoin(host, urlpath)
     params = {'fn_id': fn_id, 'client_id': client_id, 'ftype': ftype}
-    return requests.get(url=url, params=params, verify=certfile)
+    if getkwargs:
+        params.update(getkwargs)
+    return requests.get(url=url, params=params)
 
 
-def register_transfer(host, fn_id, fpath, ftype, client_id, certfile):
+def register_transfer(host, fn_id, fpath, ftype, client_id):
     url = urljoin(host, 'files/transferred/')
     postdata = {'fn_id': fn_id, 'filename': os.path.basename(fpath),
                 'client_id': client_id,
                 'ftype': ftype,
                 }
-    return requests.post(url=url, data=postdata, verify=certfile)
+    return requests.post(url=url, data=postdata)
 
 
-def register_file(host, fn, fn_md5, size, date, client_id, certfile, claimed):
-    url = urljoin(host, 'files/register/')
+def register_file(host, url, fn, fn_md5, size, date, client_id, claimed, **postkwargs):
+    url = urljoin(host, url)
     postdata = {'fn': fn,
                 'client_id': client_id,
                 'md5': fn_md5,
@@ -44,7 +46,9 @@ def register_file(host, fn, fn_md5, size, date, client_id, certfile, claimed):
                 'date': date,
                 'claimed': claimed,
                 }
-    return requests.post(url=url, data=postdata, verify=certfile)
+    if postkwargs:
+        postdata.update(postkwargs)
+    return requests.post(url=url, data=postdata)
 
 
 def save_ledger(ledger, ledgerfile):
@@ -83,15 +87,15 @@ def collect_outbox(outbox, ledger, ledgerfn):
             save_ledger(ledger, ledgerfn)
 
 
-def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile, claimed=False):
+def register_outbox_files(ledger, ledgerfn, kantelehost, url, client_id, claimed=False, **postkwargs):
     logging.info('Checking files to register')
     for fn, produced_fn in ledger.items():
         if not produced_fn['registered']:
             fn = os.path.basename(produced_fn['fpath'])
             size = os.path.getsize(produced_fn['fpath'])
-            reg_response = register_file(kantelehost, fn, produced_fn['md5'],
+            reg_response = register_file(kantelehost, url, fn, produced_fn['md5'],
                                          size, produced_fn['prod_date'],
-                                         client_id, certfile, claimed)
+                                         client_id, claimed, **postkwargs)
             js_resp = reg_response.json()
             if js_resp['state'] == 'registered':
                 produced_fn['remote_id'] = js_resp['file_id']
@@ -112,7 +116,7 @@ def register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile, cl
 
 
 def transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
-                          kantelehost, client_id, certfile):
+        kantelehost, client_id):
     logging.info('Checking transfer of files')
     for produced_fn in ledger.values():
         if produced_fn['registered'] and not produced_fn['transferred']:
@@ -127,18 +131,17 @@ def transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
                 produced_fn['transferred'] = True
                 save_ledger(ledger, ledgerfn)
                 register_transferred_files(ledger, ledgerfn, kantelehost,
-                                           client_id, certfile)
+                                           client_id)
 
 
-def register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
-                               certfile):
+def register_transferred_files(ledger, ledgerfn, kantelehost, client_id):
     logging.info('Register transfer of files if necessary')
     for produced_fn in ledger.values():
         if produced_fn['transferred'] and not produced_fn['remote_checking']:
             response = register_transfer(kantelehost, produced_fn['remote_id'],
                                          produced_fn['fpath'],
-                                         produced_fn['ftype'], client_id,
-                                         certfile)
+                                         produced_fn['ftype'], client_id)
+                                         
             try:
                 js_resp = response.json()
             except JSONDecodeError:
@@ -158,15 +161,15 @@ def register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
             save_ledger(ledger, ledgerfn)
 
 
-def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id,
-                                    certfile):
+def check_success_transferred_files(ledger, ledgerfn, kantelehost, url, client_id,
+                                    **getkwargs):
     logging.info('Check transfer of files')
     for produced_fn in ledger.values():
         if produced_fn['remote_checking'] and not produced_fn['remote_ok']:
-            response = check_transfer_success(kantelehost,
+            response = check_transfer_success(kantelehost, url,
                                               produced_fn['remote_id'],
                                               produced_fn['ftype'],
-                                              client_id, certfile)
+                                              client_id, **getkwargs)
             try:
                 js_resp = response.json()
             except JSONDecodeError:
@@ -183,11 +186,10 @@ def check_success_transferred_files(ledger, ledgerfn, kantelehost, client_id,
             save_ledger(ledger, ledgerfn)
 
 
-def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile,
-               globalloop):
+def check_done(ledger, ledgerfn, kantelehost, client_id, donebox, globalloop):
     while True:
-        check_success_transferred_files(ledger, ledgerfn, kantelehost,
-                                        client_id, certfile)
+        check_success_transferred_files(ledger, ledgerfn, kantelehost, 'files/md5/',
+                                        client_id)
         for file_done in [k for k, x in ledger.items() if x['remote_ok']]:
             file_done = ledger[file_done]['fpath']
             logging.info('Finished with file {}: '
@@ -230,15 +232,13 @@ def main():
         ledger = {}
     while True:
         collect_outbox(outbox, ledger, ledgerfn)
-        register_outbox_files(ledger, ledgerfn, kantelehost, client_id,
-                              certfile)
+        register_outbox_files(ledger, ledgerfn, kantelehost, 'files/register/', 
+                client_id)
         transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
-                              kantelehost, client_id, certfile)
+                              kantelehost, client_id)
         # registers are done after each transfer, this one is to wrap them up
-        register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
-                                   certfile)
-        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, certfile,
-                   globalloop)
+        register_transferred_files(ledger, ledgerfn, kantelehost, client_id)
+        check_done(ledger, ledgerfn, kantelehost, client_id, donebox, globalloop)
         if not globalloop:
             break
         sleep(10)
