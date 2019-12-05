@@ -20,11 +20,11 @@ def register_libraryfile(fn_item, ledger, ledgerfn, description, host,
     p.save_ledger(ledger, ledgerfn)
 
 
-def check_transferred(fn_item, ledger, ledgerfn, kantelehost, client_id,
-                      certfile):
+def check_transferred(fn_item, ledger, ledgerfn, kantelehost, url, client_id,
+                      **getkwargs):
     while True:
-        p.check_success_transferred_files(ledger, ledgerfn, kantelehost,
-                                          client_id, certfile)
+        p.check_success_transferred_files(ledger, ledgerfn, kantelehost, url,
+                                          client_id, **getkwargs)
         for file_done in [k for k, x in ledger.items() if x['remote_ok']]:
             file_done = ledger[file_done]['fpath']
 #            logging.info('Finished with file {}: '
@@ -35,15 +35,14 @@ def check_transferred(fn_item, ledger, ledgerfn, kantelehost, client_id,
         sleep(10)
 
 
-def check_done(fn_item, ledger, ledgerfn, kantelehost, client_id, donebox,
-               certfile):
+def check_done(fn_item, ledger, ledgerfn, kantelehost, client_id, donebox):
     if not fn_item['library']:
         print('Problem creating a library from this file')
         return
     while True:
         url = urljoin(kantelehost, 'files/libfile/')
         params = {'fn_id': fn_item['remote_id']}
-        reg_response = requests.get(url=url, params=params, verify=certfile)
+        reg_response = requests.get(url=url, params=params)
         js_resp = reg_response.json()
         if js_resp['library'] and js_resp['ready']:
             del(ledger[fn_item['fpath']])
@@ -61,7 +60,6 @@ def main():
     kantelehost = sys.argv[5]  # http://host.com/kantele
     client_id = sys.argv[6]
     keyfile = sys.argv[7]
-    certfile = None
     transfer_location = sys.argv[8]  # SCP login@storageserver.com:/home/store
     try:
         with open(ledgerfn) as fp:
@@ -77,17 +75,17 @@ def main():
         p.save_ledger(ledger, ledgerfn)
     if not ledger[fnpath]['md5']:
         ledger[fnpath]['md5'] = p.md5(fnpath)
-    p.register_outbox_files(ledger, ledgerfn, kantelehost, client_id, certfile, claimed=True)
+    p.register_outbox_files(ledger, ledgerfn, kantelehost, 'files/register/', 
+                client_id, claimed=True)
     p.transfer_outbox_files(ledger, ledgerfn, transfer_location, keyfile,
-                            kantelehost, client_id, certfile)
-    p.register_transferred_files(ledger, ledgerfn, kantelehost, client_id,
-                                 certfile)
+                            kantelehost, client_id)
+    p.register_transferred_files(ledger, ledgerfn, kantelehost, client_id)
     check_transferred(ledger[fnpath], ledger, ledgerfn, kantelehost, client_id,
-                      certfile)
+                      'files/md5/')
     register_libraryfile(ledger[fnpath], ledger, ledgerfn, description,
-                         kantelehost, client_id, certfile)
+                         kantelehost, client_id)
     check_done(ledger[fnpath], ledger, ledgerfn, kantelehost, client_id,
-               os.path.split(fnpath)[0], certfile)
+               os.path.split(fnpath)[0])
 
 
 if __name__ == '__main__':
