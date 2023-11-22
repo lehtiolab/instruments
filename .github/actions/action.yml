@@ -1,0 +1,14 @@
+name: 'Hello World'
+description: 'Test reading file'
+inputs:
+  input-file:  # id of input
+    description: 'File to read'
+    required: true
+    default: './instruments/gin.json'
+#outputs:
+#  time: # id of output
+#    description: 'The time we greeted you'
+runs:
+  using: 'node20'
+  main: 'index.js'
+

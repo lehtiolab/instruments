@@ -1,0 +1,5 @@
+[
+    {"name": "solvent",
+        "description": "Replace solvent",
+        "days_interval": 30}
+]
