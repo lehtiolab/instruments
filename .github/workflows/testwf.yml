@@ -1,17 +1,17 @@
-- name: Test actions manually
-  run-name: my test wf
-  on: [workflow_dispatch]
-  jobs:
-      run-test-action:
-          runs-on: ubuntu-latest
-          name: This is the job
-          steps:
-              - name: Checkout
-                uses: actions/checkout@v4
-              - name: Test action step
-                uses: ./.github/actions/action.yml
-                id: teststep
-                with:
-                    input-file: ./instruments/gin.json
+name: Test actions manually
+run-name: my test wf
+on: [workflow_dispatch]
+jobs:
+    run-test-action:
+        runs-on: ubuntu-latest
+        name: This is the job
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Test action step
+              uses: ./.github/actions/action.yml
+              id: teststep
+              with:
+                  input-file: ./instruments/gin.json
 
 
