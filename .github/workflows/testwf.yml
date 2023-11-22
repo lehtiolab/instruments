@@ -9,7 +9,7 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
             - name: Test action step
-              uses: ./.github/actions/action.yml
+              uses: ./.github/actions/
               id: teststep
               with:
                   input-file: ./instruments/gin.json
