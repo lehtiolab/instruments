@@ -2,10 +2,12 @@ const core = require('@actions/core');
 const fm = require('front-matter');
 const fs = require('fs');
 
-const inputfn = core.getInput('input-file');
-console.log(`Reading ${inputfn}`);
+// const = core.getInput('input-file');
+
+const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
+const tasks = JSON.parse(fs.readFileSync('tasks.json', 'utf-8'));
 
 
-const contents = JSON.parse(fs.readFileSync(inputfn, 'utf-8'));
-console.log(contents);
+console.log(instruments);
+console.log(tasks);
 

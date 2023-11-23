@@ -1,0 +1,11 @@
+[
+  { 
+    "name": "Gin",
+    "tasks": ["solvent"]
+  },
+
+  {
+    "name": "Leia",
+    "tasks": ["solvent"]
+  }
+]
