@@ -43,8 +43,8 @@ function editIssuesOrderByDate() {
 }
 
 
-function reopenIssueAndSetDueDate(issuenumber) {
-  const issue = octokit.rest.issues.get({
+async function reopenIssueAndSetDueDate(issuenumber) {
+  const issue = await octokit.rest.issues.get({
     owner: process.env.GITHUB_REPOSITORY_OWNER,
     repo: process.env.GITHUB_REPO_NAME,
     issue_number: issuenumber,
