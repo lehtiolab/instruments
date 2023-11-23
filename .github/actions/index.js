@@ -3,7 +3,7 @@ const fm = require('front-matter');
 const fs = require('fs');
 const github = require('@actions/github');
 
-const token = core.getInput('token');
+const token = core.getInput('repo-token');
 const octokit = github.getOctokit(token);
 
 const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
