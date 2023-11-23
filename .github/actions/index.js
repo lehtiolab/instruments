@@ -50,6 +50,7 @@ async function reopenIssueAndSetDueDate(issuenumber) {
     issue_number: issuenumber,
   });
   console.log(JSON.stringify(issue));
+  console.log(JSON.stringify(issue).body);
   const issuedata = fm(issue.body);
   console.log(JSON.stringify(issuedata));
 
