@@ -49,6 +49,7 @@ function reopenIssueAndSetDueDate(issuenumber) {
     repo: process.env.GITHUB_REPO_NAME,
     issue_number: issuenumber,
   });
+  console.log(JSON.stringify(issue));
   const issuedata = fm(issue.body);
   console.log(JSON.stringify(issuedata));
 
@@ -67,6 +68,6 @@ function reopenIssueAndSetDueDate(issuenumber) {
 reopenIssueAndSetDueDate(1);
 
 // if /case switch for commands
-console.log(instruments);
-console.log(tasks);
+//console.log(instruments);
+//console.log(tasks);
 
