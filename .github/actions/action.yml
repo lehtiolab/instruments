@@ -1,10 +1,9 @@
 name: 'Hello World'
 description: 'Test reading file'
 inputs:
-  input-file:  # id of input
-    description: 'File to read'
+  repo-token:  # id of input
+    description: 'Github actions repo token'
     required: true
-    default: './instruments/gin.json'
 #outputs:
 #  time: # id of output
 #    description: 'The time we greeted you'
