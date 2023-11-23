@@ -1,11 +1,19 @@
 name: Test actions manually
 run-name: my test wf
 on: [workflow_dispatch]
+env:
+  GITHUB_REPO_NAME: instruments
 jobs:
     run-test-action:
         runs-on: ubuntu-latest
         name: This is the job
         steps:
+            - name: Dump github context
+              run:   echo "$GITHUB_CONTEXT"
+              shell: bash
+              env:
+               GITHUB_CONTEXT: ${{ toJson(github) }}
+
             - name: Checkout
               uses: actions/checkout@v4
             - name: Test action step

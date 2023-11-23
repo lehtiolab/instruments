@@ -1,12 +1,21 @@
 const core = require('@actions/core');
 const fm = require('front-matter');
 const fs = require('fs');
+const github = require('@actions/github');
 
-// const = core.getInput('input-file');
+const token = core.getInput('token');
+const octokit = github.getOctokit(token);
 
 const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
 const tasks = JSON.parse(fs.readFileSync('tasks.json', 'utf-8'));
 
+async function getIssues() {
+  await octokit.paginate(octokit.rest.issues.listForRepo, {
+    owner: process.env.GITHUB_REPOSITORY_OWNER,
+    repo: process.env.GITHUB_REPO_NAME,
+}
+
+const issues = await getIssues();
 
 console.log(instruments);
 console.log(tasks);
