@@ -16,7 +16,11 @@ async function getIssues() {
     });
 }
 
-const issues = await getIssues();
+async function runAction() {
+  const issues = await getIssues();
+}
+
+runAction();
 
 console.log(instruments);
 console.log(tasks);
