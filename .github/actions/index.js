@@ -49,18 +49,25 @@ async function reopenIssueAndSetDueDate(issuenumber) {
     repo: process.env.GITHUB_REPO_NAME,
     issue_number: issuenumber,
   });
-  console.log(JSON.stringify(issue, space=2));
   console.log(issue);
-  const issuedata = fm(issue.body);
+  const issuedata = fm(issue.data.body).attributes;
   console.log(JSON.stringify(issuedata));
 
-  //octokit.rest.issues.update({
-  //  owner: process.env.GITHUB_REPOSITORY_OWNER,
-  //  repo: process.env.GITHUB_REPO_NAME,
-  //  issue_number: issuenumber,
-  //  body: "",
-  //  title: "",
-  //})
+  // FIXME parse date -
+  const newdate = '2025-01-01';
+  const newbody = `---
+instrument: ${issuedata.instrument}
+task: ${issuedata.task}
+due: ${newdate}
+---`;
+  octokit.rest.issues.update({
+    owner: process.env.GITHUB_REPOSITORY_OWNER,
+    repo: process.env.GITHUB_REPO_NAME,
+    issue_number: issuenumber,
+    state: "open",
+    body: newbody,
+    title: `Due ${newdate} - ${task} for ${instrument}`,
+  })
 
   editIssuesOrderByDate();
 }
