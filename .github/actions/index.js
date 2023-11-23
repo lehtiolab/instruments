@@ -49,8 +49,8 @@ async function reopenIssueAndSetDueDate(issuenumber) {
     repo: process.env.GITHUB_REPO_NAME,
     issue_number: issuenumber,
   });
-  console.log(JSON.stringify(issue));
-  console.log(issue.body);
+  console.log(JSON.stringify(issue, space=2));
+  console.log(issue);
   const issuedata = fm(issue.body);
   console.log(JSON.stringify(issuedata));
 
