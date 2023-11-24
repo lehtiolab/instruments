@@ -50,11 +50,12 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
 
   let duedate = new Date(issuedata.due);
   duedate.setDate(duedate.getDate() + interval);
+  const displayDate = duedate.toLocaleDateString('sv-SE');
 
   const newbody = `---
 instrument: ${issuedata.instrument}
 task: ${issuedata.task}
-due: ${duedate}
+due: ${displayDate}
 ---`;
   octokit.rest.issues.update({
     owner: process.env.GITHUB_REPOSITORY_OWNER,
@@ -62,9 +63,8 @@ due: ${duedate}
     issue_number: issuenumber,
     state: "open",
     body: newbody,
-    title: `Due ${duedate} - ${issuedata.task} for ${issuedata.instrument}`,
+    title: `Due ${displayDate} - ${issuedata.task} for ${issuedata.instrument}`,
   })
-
   editIssuesOrderByDate();
 }
 
