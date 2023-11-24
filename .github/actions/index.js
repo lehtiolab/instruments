@@ -3,12 +3,6 @@ const fm = require('front-matter');
 const fs = require('fs');
 const github = require('@actions/github');
 
-const token = core.getInput('repo-token');
-const octokit = github.getOctokit(token);
-
-const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
-const tasklist = JSON.parse(fs.readFileSync('tasks.json', 'utf-8'));
-const tasks = Object.fromEntries(tasklist.map(x => [x.name, x]));
 
 function getIssues() {
   let issues = {};
@@ -43,7 +37,7 @@ function editIssuesOrderByDate() {
 }
 
 
-async function reopenIssueAndSetDueDate(issuenumber) {
+async function reopenIssueAndSetDueDate(issuenumber, tasks) {
   const issue = await octokit.rest.issues.get({
     owner: process.env.GITHUB_REPOSITORY_OWNER,
     repo: process.env.GITHUB_REPO_NAME,
@@ -52,13 +46,15 @@ async function reopenIssueAndSetDueDate(issuenumber) {
   console.log(issue);
   const issuedata = fm(issue.data.body).attributes;
   console.log(JSON.stringify(issuedata));
+  const interval = tasks[issuedata.task].days_interval;
 
-  // FIXME parse date -
-  const newdate = '2025-01-01';
+  let duedate = new Date(issuedata.due);
+  duedate.setDate(dueDate.getDate() + interval);
+
   const newbody = `---
 instrument: ${issuedata.instrument}
 task: ${issuedata.task}
-due: ${newdate}
+due: ${duedate}
 ---`;
   octokit.rest.issues.update({
     owner: process.env.GITHUB_REPOSITORY_OWNER,
@@ -72,8 +68,18 @@ due: ${newdate}
   editIssuesOrderByDate();
 }
 
-// runAction();
-reopenIssueAndSetDueDate(1);
+
+const token = core.getInput('repo-token');
+const action = core.getInput('workflow-action');
+const octokit = github.getOctokit(token);
+
+const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
+const tasklist = JSON.parse(fs.readFileSync('tasks.json', 'utf-8'));
+const tasks = Object.fromEntries(tasklist.map(x => [x.name, x]));
+if (action == 'reopen-issue') {
+  issuenumber = core.getInput('issuenumber');
+  reopenIssueAndSetDueDate(issuenumber, tasks);
+}
 
 // if /case switch for commands
 //console.log(instruments);

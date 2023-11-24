@@ -21,6 +21,7 @@ jobs:
               id: teststep
               with:
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
+                  action: test
 
 
 
