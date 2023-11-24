@@ -4,6 +4,13 @@ inputs:
   repo-token:  # id of input
     description: 'Github actions repo token'
     required: true
+  workflow-action:
+    description: 'Subcommand for the action'
+    required: true
+  issuenumber:
+    description: 'Number of issue that is to be updated'
+    required: false
+
 #outputs:
 #  time: # id of output
 #    description: 'The time we greeted you'
