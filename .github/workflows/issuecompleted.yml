@@ -1,0 +1,23 @@
+run-name: Reopening and updating issue
+on:
+    issues:
+        types: [closed]
+env:
+  GITHUB_REPO_NAME: instruments
+jobs:
+    run-updated-reopen:
+        runs-on: ubuntu-latest
+        name: Reopen issue job
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+            - name: Test action step
+              uses: ./.github/actions/
+              id: teststep
+              with:
+                  workflow-action: reopen-issue
+                  issuenumber: ${{ github.event.issue.number }}
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+
+
