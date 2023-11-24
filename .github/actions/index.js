@@ -49,7 +49,7 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
   const interval = tasks[issuedata.task].days_interval;
 
   let duedate = new Date(issuedata.due);
-  duedate.setDate(dueDate.getDate() + interval);
+  duedate.setDate(duedate.getDate() + interval);
 
   const newbody = `---
 instrument: ${issuedata.instrument}
