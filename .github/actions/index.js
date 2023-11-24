@@ -62,7 +62,7 @@ due: ${duedate}
     issue_number: issuenumber,
     state: "open",
     body: newbody,
-    title: `Due ${newdate} - ${issuedata.task} for ${issuedata.instrument}`,
+    title: `Due ${duedate} - ${issuedata.task} for ${issuedata.instrument}`,
   })
 
   editIssuesOrderByDate();
