@@ -3,9 +3,15 @@
     "name": "Gin",
     "tasks": ["solvent"]
   },
-
+ 
   {
     "name": "Leia",
     "tasks": ["solvent", "toothbrush"]
   }
+  
+    {
+    "name": "Fred",
+    "tasks": ["solvent", "toothbrush"]
+  }
+
 ]
