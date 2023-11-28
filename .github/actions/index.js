@@ -107,8 +107,8 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
       // FIXME combined remove label and bad interval!
     }
   for ([issue_instr, issuetasks] of Object.entries(issues)) {
-    for (issuetask, issuedata] of Object.entries(issuetasks)) {
-      if (issuedata.instrument not in instruments || issuedata.task not in instruments[issuedata.instrument].tasks) {
+    for ([issuetask, issuedata] of Object.entries(issuetasks)) {
+      if (!(issue_instr in instruments && issuedata.task in instruments[issue_instr].tasks)) {
         console.log(`Closing issue ${issudata.instrument}/${issuedata.task}`);
         await octokit.rest.issues.update({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
@@ -157,29 +157,27 @@ async function updateLabelsOrderByDate() {
   const issues = await getIssues();
   let orderedIssues = [];
   for ([_i, issuetasks] of Object.entries(issues)) {
-    for [_t, issue] of Object.entries(issuetasks)) {
+    for ([_t, issue] of Object.entries(issuetasks)) {
       orderedIssues.push(issue);
     }
   }
-  orderedIssues
-    // most days left will be first
-    .sort(a, b => Number(b.days_left) - Number(a.days_left))
-    .forEach(issue => {
-        let labeltext = '';
-        for ([mintext, mindays] of LABELS_ORDER) {
-          labeltext = mintext;
-          if (issue.days_left < mindays( {
-              break;
-          }
-        }
-        await octokit.rest.issues.update({
-          owner: process.env.GITHUB_REPOSITORY_OWNER,
-          repo: process.env.GITHUB_REPO_NAME,
-          issue_number: issue.issuenumber,
-          labels: [labeltext],
-        });
-
-    })
+  // most days left will be first
+  orderedIssues.sort(a, b => Number(b.days_left) - Number(a.days_left))
+  for (issue of orderedIssues) {
+    let labeltext = '';
+    for ([mintext, mindays] of LABELS_ORDER) {
+      labeltext = mintext;
+      if (issue.days_left < mindays) {
+          break;
+      }
+    }
+    await octokit.rest.issues.update({
+      owner: process.env.GITHUB_REPOSITORY_OWNER,
+      repo: process.env.GITHUB_REPO_NAME,
+      issue_number: issue.issuenumber,
+      labels: [labeltext],
+    });
+  }
 }
 
 
