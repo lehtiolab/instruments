@@ -10,4 +10,10 @@
         "description": "Replace solvent",
         "days_interval": 30
     }
+        {
+        "name": "fake",
+        "description": "Replace fake",
+        "days_interval": 14
+    }
+
 ]
