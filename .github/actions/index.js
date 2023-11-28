@@ -3,6 +3,7 @@ const fm = require('front-matter');
 const fs = require('fs');
 const github = require('@actions/github');
 
+const LABELTEXT_ERROR = 'Error';
 
 function getIssues() {
   let instr_issues = {};

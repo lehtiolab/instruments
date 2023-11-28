@@ -1,7 +1,8 @@
 run-name: Reopening and updating issue
 on:
-    issues:
-        types: [closed]
+    workflow_dispatch:
+    #    issues:
+    #        types: [closed]
 env:
   GITHUB_REPO_NAME: instruments
 jobs:
