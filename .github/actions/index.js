@@ -91,6 +91,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
           issue_number: issue.issuenumber,
+          title: getTitle(displayDueDate, tasks[task].description, instr.name),
           body: getIssueBody(instr.name, task, issue.last_done, displayDueDate),
         })
           console.log('SHOULD CHANGE INTERVAL');
