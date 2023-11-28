@@ -106,7 +106,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
 
       // FIXME combined remove label and bad interval!
     }
-  for ([issue_instr, issuetasks], of Object.entries(issues)) {
+  for ([issue_instr, issuetasks] of Object.entries(issues)) {
     for (issuetask, issuedata] of Object.entries(issuetasks)) {
       if (issuedata.instrument not in instruments || issuedata.task not in instruments[issuedata.instrument].tasks) {
         console.log(`Closing issue ${issudata.instrument}/${issuedata.task}`);
