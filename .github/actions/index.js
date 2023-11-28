@@ -13,9 +13,19 @@ function getIssues() {
       .then(issues => {
         issues.forEach(x => {
           const issuedata = fm(x.body).attributes;
-          instr_issues[issuedata.instrument] = issuedata;
+          if (!(issuedata.instrument in instr_issues)) {
+            instr_issues[issuedata.instrument] = {};
+          }
+          const duedate = new Date(issuedata.duedate);
+          const lastdate = new Date(issuedata.last_done);
+          const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
+          instr_issues[issuedata.instrument][issuedata.task] = {
+            label: 0,
+            days_interval: calculated_interval,
+          };
         })
       })
+     // FIXME first try to figure out how to address this things before writing it
   return instr_issues;
 }
 
@@ -35,6 +45,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           console.log('SHOULD ERROR');
           // FIXME error the job at the end -- should we have this, instead below?
       } else if (!issue_exist) {
+          console.log('creating new issue');
         let duedate = new Date(Date.now());
         const todayDate = duedate.toLocaleDateString('sv-SE');
         duedate.setDate(duedate.getDate() + tasks[task].days_interval);
