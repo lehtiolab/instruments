@@ -17,9 +17,12 @@ async function getIssues() {
           if (!(issuedata.instrument in instr_issues)) {
             instr_issues[issuedata.instrument] = {};
           }
-          const duedate = new Date(issuedata.duedate);
+          const duedate = new Date(issuedata.due);
           const lastdate = new Date(issuedata.last_done);
           const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
+          console.log(duedate);
+          console.log(last_done);
+          console.log(calculated_interval);
           instr_issues[issuedata.instrument][issuedata.task] = {
             label: 0,
             days_interval: calculated_interval,
@@ -34,10 +37,11 @@ async function getIssues() {
 
 async function checkEditedInstrumentsOrTasks(instruments, tasks) {
   const issues = await getIssues();
+    console.log(JSON.stringify(issues));
 
   for (instr of instruments) {
     for (task of instr.tasks) {
-      console.log(`${instr.name}, ${JSON.stringify(issues)}`);
+      console.log(`${instr.name}, ${task}`);
       issue_exist = instr.name in issues && task in issues[instr.name]
       if (!(task in tasks) && issue_exist) {
           console.log('SHOULD ORPHAN');
