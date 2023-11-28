@@ -65,9 +65,11 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
       } else if (issues[instr.name][task].label_text === LABELTEXT_ERROR) {
           console.log('SHOULD SET ERROR');
           // FIXME remove error label
-      } else if (issues[instr.name][task].calculated_interval !== tasks[task].days_interval) {
+      } else if (issues[instr.name][task].calculated_interval !== Number(tasks[task].days_interval)) {
           console.log('SHOULD CHANGE INTERVAL');
           // FIXME update due date to new interval
+      } else {
+          console.log('NO CHANGES!');
       }
       // FIXME combined remove label and bad interval etc
     }
