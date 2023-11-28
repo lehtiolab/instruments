@@ -5,9 +5,9 @@ const github = require('@actions/github');
 
 const LABELTEXT_ERROR = 'Error';
 
-function getIssues() {
+async function getIssues() {
   let instr_issues = {};
-  octokit.paginate(octokit.rest.issues.listForRepo, {
+  await octokit.paginate(octokit.rest.issues.listForRepo, {
     owner: process.env.GITHUB_REPOSITORY_OWNER,
     repo: process.env.GITHUB_REPO_NAME,
     })
@@ -33,7 +33,7 @@ function getIssues() {
 // FIXME enum for labels (text, color)
 
 async function checkEditedInstrumentsOrTasks(instruments, tasks) {
-  const issues = getIssues();
+  const issues = await getIssues();
 
   for (instr of instruments) {
     for (task of instr.tasks) {
