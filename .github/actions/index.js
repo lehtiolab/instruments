@@ -41,8 +41,8 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
         await octokit.rest.issues.create({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
-          title: getTitle(displayDate, tasks[task].description, instrument.name),
-          body: getIssueBody(instrument.name, task, todayDate, displayDate),
+          title: getTitle(displayDate, tasks[task].description, instr.name),
+          body: getIssueBody(instr.name, task, todayDate, displayDate),
         })
         // FIXME orphan label if no task exist??
       } else if (issues[instr.name][task].label_text === LABELTEXT_ERROR) {
