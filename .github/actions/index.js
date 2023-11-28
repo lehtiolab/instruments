@@ -96,7 +96,7 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
 
   let duedate = new Date(Date.now());
   const todayDate = duedate.toLocaleDateString('sv-SE');
-  duedate.setDate(today.getDate() + task.days_interval);
+  duedate.setDate(todayDate.getDate() + task.days_interval);
   const displayDate = duedate.toLocaleDateString('sv-SE');
 
   const newbody = getIssueBody(issuedata.instrument, issuedata.task, todayDate, displayDate);
