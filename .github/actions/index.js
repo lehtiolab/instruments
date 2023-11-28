@@ -64,10 +64,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           issue_number: issue.issuenumber,
           labels: [LABELTEXT_ERROR],
         })
-      } else if (!(task in tasks)) {
-          console.log('SHOULD ERROR');
-          // FIXME error the job at the end -- should we have this, instead below?
-      } else if (!issue) {
+      } else if (!issue && task in tasks) {
         console.log(`Creating new issue for ${ins_name}/${task}`);
         let duedate = new Date(Date.now());
         const todayDate = duedate.toLocaleDateString('sv-SE');
@@ -79,7 +76,6 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           title: getTitle(displayDate, tasks[task].description, ins_name),
           body: getIssueBody(ins_name, task, todayDate, displayDate),
         })
-        // FIXME orphan label if no task exist??
       } else if (issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
         console.log(`Removing error label from issue ${ins_name}/${task}`);
         await octokit.rest.issues.setLabels({
@@ -88,11 +84,15 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           issue_number: issue.issuenumber,
           labels: [],
         })
-      } else if (issues[ins_name][task].calculated_interval !== Number(tasks[task].days_interval)) {
+      } else {
+          console.log(`No state changes found for ${ins_name}/${task}`);
+      }
+
+      // Also check for changed intervals and update
+      if (issue && issue.calculated_interval !== Number(tasks[task].days_interval)) {
         let issueLastdate = new Date(issue.last_done);
         issueLastdate.setDate(issueLastdate.getDate() + tasks[task].days_interval);
         const displayDueDate = issueLastdate.toLocaleDateString('sv-SE');
-
         await octokit.rest.issues.update({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
@@ -100,12 +100,9 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           title: getTitle(displayDueDate, tasks[task].description, ins_name),
           body: getIssueBody(ins_name, task, issue.last_done, displayDueDate),
         })
-      } else {
-          console.log(`No changes found for ${ins_name}/${task}`);
       }
-
-      // FIXME combined remove label and bad interval!
     }
+  }
   for ([issue_instr, issuetasks] of Object.entries(issues)) {
     for ([issuetask, issuedata] of Object.entries(issuetasks)) {
       if (!(issue_instr in instruments && issuedata.task in instruments[issue_instr].tasks)) {
@@ -119,17 +116,6 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
       }
     }
   }
-  
-    // Now go through issues instead and check if instruments exist:
-      // FIXME Remove issue when instrument is not exist or has no tasks
-  }
-    // for each instrument, check if an issue exists for each task
-    // // remove issues for that instrument if task is not in instrument list
-    // for each issue, if no instrument, remove it
-    //
-    // for each task, check if an orphan issue exists and remove error label
-    // // for each issue, check if it needs error labeling
-    //
 }
 
 
@@ -164,19 +150,21 @@ async function updateLabelsOrderByDate() {
   // most days left will be first
   orderedIssues.sort((a, b) => Number(b.days_left) - Number(a.days_left))
   for (issue of orderedIssues) {
-    let labeltext = '';
-    for ([mintext, mindays] of LABELS_ORDER) {
-      labeltext = mintext;
-      if (issue.days_left < mindays) {
-          break;
+    if (issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
+      let labeltext = '';
+      for ([mintext, mindays] of LABELS_ORDER) {
+        labeltext = mintext;
+        if (issue.days_left < mindays) {
+            break;
+        }
       }
+      await octokit.rest.issues.update({
+        owner: process.env.GITHUB_REPOSITORY_OWNER,
+        repo: process.env.GITHUB_REPO_NAME,
+        issue_number: issue.issuenumber,
+        labels: [labeltext],
+      });
     }
-    await octokit.rest.issues.update({
-      owner: process.env.GITHUB_REPOSITORY_OWNER,
-      repo: process.env.GITHUB_REPO_NAME,
-      issue_number: issue.issuenumber,
-      labels: [labeltext],
-    });
   }
 }
 
