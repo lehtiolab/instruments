@@ -2,8 +2,8 @@ run-name: Config updated, check issues
 on:
   push:
     paths:
-      - './instruments.json'
-      - './tasks.json'
+      - 'instruments.json'
+      - 'tasks.json'
     branches:
       - 'master'
 
