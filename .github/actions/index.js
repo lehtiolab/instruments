@@ -20,13 +20,13 @@ async function getIssues() {
           const duedate = new Date(issuedata.due);
           const lastdate = new Date(issuedata.last_done);
           const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
-          console.log(duedate);
-          console.log(lastdate);
-          console.log(calculated_interval);
-          instr_issues[issuedata.instrument][issuedata.task] = {
-            label: 0,
+            console.log(x);
+          const extra_data = {
+            issuenumber: x.number,
+            label: [],
             calculated_interval: calculated_interval,
           };
+          instr_issues[issuedata.instrument][issuedata.task] = Object.assign(extra_data, issuedata);
         })
       })
      // FIXME first try to figure out how to address this things before writing it
@@ -40,17 +40,27 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
     console.log(JSON.stringify(issues));
     console.log(JSON.stringify(tasks));
 
+  // First check for each instrument/task if there is something to do
   for (instr of instruments) {
     for (task of instr.tasks) {
       console.log(`${instr.name}, ${task}`);
-      issue_exist = instr.name in issues && task in issues[instr.name]
-      if (!(task in tasks) && issue_exist) {
+      let issue = false;
+      if (instr.name in issues && task in issues[instr.name]) {
+          issue = issues[instr.name][task];
+      }
+      if (!(task in tasks) && issue && issue.label.indexOf(LABELTEXT_ERROR) < 0) {
+        await octokit.rest.issues.setLabels({
+          owner: process.env.GITHUB_REPOSITORY_OWNER,
+          repo: process.env.GITHUB_REPO_NAME,
+          issue_number: issue.issuenumber,
+          labels: [LABELTEXT_ERROR],
+        })
           console.log('SHOULD ORPHAN');
           // FIXME orphan the task label
       } else if (!(task in tasks)) {
           console.log('SHOULD ERROR');
           // FIXME error the job at the end -- should we have this, instead below?
-      } else if (!issue_exist) {
+      } else if (!issue) {
           console.log('creating new issue');
         let duedate = new Date(Date.now());
         const todayDate = duedate.toLocaleDateString('sv-SE');
@@ -63,17 +73,36 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           body: getIssueBody(instr.name, task, todayDate, displayDate),
         })
         // FIXME orphan label if no task exist??
-      } else if (issues[instr.name][task].label_text === LABELTEXT_ERROR) {
-          console.log('SHOULD SET ERROR');
+      } else if (issue.label.indexOf(LABELTEXT_ERROR) > -1) {
+        await octokit.rest.issues.setLabels({
+          owner: process.env.GITHUB_REPOSITORY_OWNER,
+          repo: process.env.GITHUB_REPO_NAME,
+          issue_number: issue.issuenumber,
+          labels: [],
+        })
+          console.log('SHOULD REMOVE ERROR');
           // FIXME remove error label
       } else if (issues[instr.name][task].calculated_interval !== Number(tasks[task].days_interval)) {
-          console.log(`SHOULD CHANGE INTERVAL ${issues[instr.name][task].calculated_interval} -- ${tasks[task]}`);
+        let issueLastdate = new Date(issue.last_done);
+        issueLastdate.setDate(issueLastdate.getDate() + tasks[task].days_interval);
+        const displayDueDate = issueLastdate.toLocaleDateString('sv-SE');
+
+        await octokit.rest.issues.setLabels({
+          owner: process.env.GITHUB_REPOSITORY_OWNER,
+          repo: process.env.GITHUB_REPO_NAME,
+          issue_number: issue.issuenumber,
+          body: getIssueBody(instr.name, task, issue.last_done, displayDueDate),
+        })
+          console.log('SHOULD CHANGE INTERVAL');
           // FIXME update due date to new interval
       } else {
           console.log('NO CHANGES!');
       }
-      // FIXME combined remove label and bad interval etc
+      // FIXME combined remove label and bad interval!
     }
+
+    // Now go through issues instead and check if instruments exist:
+      // FIXME Remove issue when instrument is not exist or has no tasks
   }
     // for each instrument, check if an issue exists for each task
     // // remove issues for that instrument if task is not in instrument list
