@@ -38,6 +38,7 @@ async function getIssues() {
 async function checkEditedInstrumentsOrTasks(instruments, tasks) {
   const issues = await getIssues();
     console.log(JSON.stringify(issues));
+    console.log(JSON.stringify(tasks));
 
   for (instr of instruments) {
     for (task of instr.tasks) {
@@ -66,7 +67,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           console.log('SHOULD SET ERROR');
           // FIXME remove error label
       } else if (issues[instr.name][task].calculated_interval !== Number(tasks[task].days_interval)) {
-          console.log('SHOULD CHANGE INTERVAL');
+          console.log(`SHOULD CHANGE INTERVAL ${issues[instr.name][task].calculated_interval} -- ${tasks[task]}`);
           // FIXME update due date to new interval
       } else {
           console.log('NO CHANGES!');
