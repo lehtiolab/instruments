@@ -13,7 +13,7 @@ function getIssues() {
       .then(issues => {
         issues.forEach(x => {
           const issuedata = fm(x.body).attributes;
-          instr_issues[issuedata.instrument] = x;
+          instr_issues[issuedata.instrument] = issuedata;
         })
       })
   return instr_issues;
