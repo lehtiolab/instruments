@@ -8,6 +8,12 @@ jobs:
         runs-on: ubuntu-latest
         name: New config job
         steps:
+            - name: Dump github context
+              run:   echo "$GITHUB_CONTEXT"
+              shell: bash
+              env:
+               GITHUB_CONTEXT: ${{ toJson(github) }}
+
             - name: Checkout
               uses: actions/checkout@v4
             - name: Run issues step
