@@ -1,9 +1,5 @@
 [
-    {
-        "name": "toothbrush",
-        "description": "Clean quadropole trap",
-        "days_interval": 10
-    },
+
 
     {
         "name": "solvent",
