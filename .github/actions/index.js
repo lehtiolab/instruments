@@ -23,7 +23,7 @@ async function getIssues() {
             console.log(x);
           const extra_data = {
             issuenumber: x.number,
-            label: [],
+            labels: x.labels.map(l => l.name),
             calculated_interval: calculated_interval,
           };
           instr_issues[issuedata.instrument][issuedata.task] = Object.assign(extra_data, issuedata);
