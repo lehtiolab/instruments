@@ -25,7 +25,7 @@ async function getIssues() {
           console.log(calculated_interval);
           instr_issues[issuedata.instrument][issuedata.task] = {
             label: 0,
-            days_interval: calculated_interval,
+            calculated_interval: calculated_interval,
           };
         })
       })
