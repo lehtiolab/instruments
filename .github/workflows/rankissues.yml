@@ -1,21 +1,17 @@
-run-name: Reopening and updating issue
+run-name: Updating and labeling all issues
 on:
     workflow_dispatch:
-    issues:
-      types: [closed]
 env:
   GITHUB_REPO_NAME: instruments
 jobs:
     run-updated-reopen:
-        if: github.event.issue.closed_by.login != 'github-actions[bot]'
         runs-on: ubuntu-latest
-        name: Reopen issue job
+        name: Update and label issue job
         steps:
             - name: Checkout
               uses: actions/checkout@v4
             - name: Run issues step
               uses: ./.github/actions/
               with:
-                  workflow-action: reopen-issue
-                  issuenumber: ${{ github.event.issue.number }}
+                  workflow-action: update-labels
                   repo-token: ${{ secrets.GITHUB_TOKEN }}

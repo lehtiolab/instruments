@@ -5,6 +5,15 @@ const github = require('@actions/github');
 
 const LABELTEXT_ERROR = 'Error';
 
+const LABEL_MONTH = ['Less than 1 month', 30];
+const LABEL_WEEK = ['Less than 1 week', 7];
+const LABEL_DAYS = ['Less than 3 days', 3];
+const LABEL_TODAY = ['Today', 1];
+const LABEL_OVERDUE = ['Overdue', 0];
+
+const LABELS_ORDER = [LABEL_OVERDUE, LABEL_TODAY, LABEL_DAYS, LABEL_WEEK, LABEL_MONTH];
+
+
 async function getIssues() {
   let instr_issues = {};
   await octokit.paginate(octokit.rest.issues.listForRepo, {
@@ -13,55 +22,53 @@ async function getIssues() {
     })
       .then(issues => {
         issues.forEach(x => {
-          const issuedata = fm(x.body).attributes;
-          if (!(issuedata.instrument in instr_issues)) {
-            instr_issues[issuedata.instrument] = {};
+          if (fm.test(x.body)) {
+            const issuedata = fm(x.body).attributes;
+            if (!(issuedata.instrument in instr_issues)) {
+              instr_issues[issuedata.instrument] = {};
+            }
+            const today = new Date.now()
+            const duedate = new Date(issuedata.due);
+            const lastdate = new Date(issuedata.last_done);
+            const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
+            const days_left = Math.round((duedate - today) / 1000 / 3600 / 24);
+            const extra_data = {
+              issuenumber: x.number,
+              labels: x.labels.map(l => l.name),
+              calculated_interval: calculated_interval,
+              days_left: days_left,
+            };
+            instr_issues[issuedata.instrument][issuedata.task] = Object.assign(extra_data, issuedata);
           }
-          const duedate = new Date(issuedata.due);
-          const lastdate = new Date(issuedata.last_done);
-          const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
-            console.log(x);
-          const extra_data = {
-            issuenumber: x.number,
-            labels: x.labels.map(l => l.name),
-            calculated_interval: calculated_interval,
-          };
-          instr_issues[issuedata.instrument][issuedata.task] = Object.assign(extra_data, issuedata);
         })
       })
-     // FIXME first try to figure out how to address this things before writing it
   return instr_issues;
 }
 
-// FIXME enum for labels (text, color)
 
 async function checkEditedInstrumentsOrTasks(instruments, tasks) {
   const issues = await getIssues();
-    console.log(JSON.stringify(issues));
-    console.log(JSON.stringify(tasks));
 
   // First check for each instrument/task if there is something to do
-  for (instr of instruments) {
+  for ([ins_name, instr] of Object.entries(instruments)) {
     for (task of instr.tasks) {
-      console.log(`${instr.name}, ${task}`);
       let issue = false;
-      if (instr.name in issues && task in issues[instr.name]) {
-          issue = issues[instr.name][task];
+      if (ins_name in issues && task in issues[ins_name]) {
+          issue = issues[ins_name][task];
       }
       if (!(task in tasks) && issue && issue.labels.indexOf(LABELTEXT_ERROR) < 0) {
+        console.log(`Orphan issue where task does not exist found: ${ins_name}/${task}`);
         await octokit.rest.issues.setLabels({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
           issue_number: issue.issuenumber,
           labels: [LABELTEXT_ERROR],
         })
-          console.log('SHOULD ORPHAN');
-          // FIXME orphan the task label
       } else if (!(task in tasks)) {
           console.log('SHOULD ERROR');
           // FIXME error the job at the end -- should we have this, instead below?
       } else if (!issue) {
-          console.log('creating new issue');
+        console.log(`Creating new issue for ${ins_name}/${task}`);
         let duedate = new Date(Date.now());
         const todayDate = duedate.toLocaleDateString('sv-SE');
         duedate.setDate(duedate.getDate() + tasks[task].days_interval);
@@ -69,20 +76,19 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
         await octokit.rest.issues.create({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
-          title: getTitle(displayDate, tasks[task].description, instr.name),
-          body: getIssueBody(instr.name, task, todayDate, displayDate),
+          title: getTitle(displayDate, tasks[task].description, ins_name),
+          body: getIssueBody(ins_name, task, todayDate, displayDate),
         })
         // FIXME orphan label if no task exist??
       } else if (issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
+        console.log(`Removing error label from issue ${ins_name}/${task}`);
         await octokit.rest.issues.setLabels({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
           issue_number: issue.issuenumber,
           labels: [],
         })
-          console.log('SHOULD REMOVE ERROR');
-          // FIXME remove error label
-      } else if (issues[instr.name][task].calculated_interval !== Number(tasks[task].days_interval)) {
+      } else if (issues[ins_name][task].calculated_interval !== Number(tasks[task].days_interval)) {
         let issueLastdate = new Date(issue.last_done);
         issueLastdate.setDate(issueLastdate.getDate() + tasks[task].days_interval);
         const displayDueDate = issueLastdate.toLocaleDateString('sv-SE');
@@ -91,17 +97,29 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
           issue_number: issue.issuenumber,
-          title: getTitle(displayDueDate, tasks[task].description, instr.name),
-          body: getIssueBody(instr.name, task, issue.last_done, displayDueDate),
+          title: getTitle(displayDueDate, tasks[task].description, ins_name),
+          body: getIssueBody(ins_name, task, issue.last_done, displayDueDate),
         })
-          console.log('SHOULD CHANGE INTERVAL');
-          // FIXME update due date to new interval
       } else {
-          console.log('NO CHANGES!');
+          console.log(`No changes found for ${ins_name}/${task}`);
       }
+
       // FIXME combined remove label and bad interval!
     }
-
+  for ([issue_instr, issuetasks], of Object.entries(issues)) {
+    for (issuetask, issuedata] of Object.entries(issuetasks)) {
+      if (issuedata.instrument not in instruments || issuedata.task not in instruments[issuedata.instrument].tasks) {
+        console.log(`Closing issue ${issudata.instrument}/${issuedata.task}`);
+        await octokit.rest.issues.update({
+          owner: process.env.GITHUB_REPOSITORY_OWNER,
+          repo: process.env.GITHUB_REPO_NAME,
+          issue_number: issue.issuenumber,
+          state: 'closed',
+        });
+      }
+    }
+  }
+  
     // Now go through issues instead and check if instruments exist:
       // FIXME Remove issue when instrument is not exist or has no tasks
   }
@@ -130,10 +148,38 @@ due: ${due}
   }
 
 
-function updateLabelsOrderByDate() {
-    // get all issues, and edit them in order of due date
-    // this way one can sort them by last edited on GH
-    // label them 
+async function updateLabelsOrderByDate() {
+  /* get all issues, and edit them in order of due date
+  this way one can sort them by last edited on GH
+  label them 
+  */ 
+
+  const issues = await getIssues();
+  let orderedIssues = [];
+  for ([_i, issuetasks] of Object.entries(issues)) {
+    for [_t, issue] of Object.entries(issuetasks)) {
+      orderedIssues.push(issue);
+    }
+  }
+  orderedIssues
+    // most days left will be first
+    .sort(a, b => Number(b.days_left) - Number(a.days_left))
+    .forEach(issue => {
+        let labeltext = '';
+        for ([mintext, mindays] of LABELS_ORDER) {
+          labeltext = mintext;
+          if (issue.days_left < mindays( {
+              break;
+          }
+        }
+        await octokit.rest.issues.update({
+          owner: process.env.GITHUB_REPOSITORY_OWNER,
+          repo: process.env.GITHUB_REPO_NAME,
+          issue_number: issue.issuenumber,
+          labels: [labeltext],
+        });
+
+    })
 }
 
 
@@ -143,9 +189,7 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
     repo: process.env.GITHUB_REPO_NAME,
     issue_number: issuenumber,
   });
-  console.log(issue);
   const issuedata = fm(issue.data.body).attributes;
-  console.log(JSON.stringify(issuedata));
   const task = tasks[issuedata.task]
 
   let duedate = new Date(Date.now());
@@ -162,7 +206,6 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
     body: newbody,
     title: getTitle(displayDate, task.description, issuedata.instrument),
   })
-  updateLabelsOrderByDate();
 }
 
 
@@ -177,14 +220,17 @@ if (action == 'reopen-issue') {
   // When an issue is closed
   issuenumber = core.getInput('issuenumber');
   reopenIssueAndSetDueDate(issuenumber, tasks);
+  updateLabelsOrderByDate();
 
 } else if (action == 'update-labels') {
   // E.g run each night to update labels
   updateLabelsOrderByDate();
 
 } else if (action == 'config-change') {
-  const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
+  const instruments = Object.fromEntries(JSON.parse(fs.readFileSync('instruments.json', 'utf-8')).map(x => [x.name, x]));
+
   checkEditedInstrumentsOrTasks(instruments, tasks);
+  updateLabelsOrderByDate();
   // When instruments/tasks change
 
 }
