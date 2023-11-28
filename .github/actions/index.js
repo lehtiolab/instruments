@@ -28,8 +28,10 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
     for (task of instr.tasks) {
       issue_exist = instr.name in issues && task in issues[instr.name]
       if (!(task in tasks) && issue_exist) {
+          console.log('SHOULD ORPHAN');
           // FIXME orphan the task label
       } else if (!(task in tasks)) {
+          console.log('SHOULD ERROR');
           // FIXME error the job at the end -- should we have this, instead below?
       } else if (!issue_exist) {
         let duedate = new Date(Date.now());
@@ -44,8 +46,10 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
         })
         // FIXME orphan label if no task exist??
       } else if (issues[instr.name][task].label_text === LABELTEXT_ERROR) {
+          console.log('SHOULD SET ERROR');
           // FIXME remove error label
       } else if (issues[instr.name][task].calculated_interval !== tasks[task].days_interval) {
+          console.log('SHOULD CHANGE INTERVAL');
           // FIXME update due date to new interval
       }
       // FIXME combined remove label and bad interval etc
@@ -130,6 +134,7 @@ if (action == 'reopen-issue') {
 
 } else if (action == 'config-change') {
   const instruments = JSON.parse(fs.readFileSync('instruments.json', 'utf-8'));
+  checkEditedInstrumentsOrTasks(instruments, tasks);
   // When instruments/tasks change
 
 }

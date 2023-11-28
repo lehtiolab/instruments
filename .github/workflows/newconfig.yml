@@ -1,19 +1,21 @@
-run-name: Reopening and updating issue
+run-name: Config updated, check issues
 on:
-    issues:
-        types: [closed]
+  push:
+    paths:
+      - ./instruments.json
+      - ./tasks.json
+
 env:
   GITHUB_REPO_NAME: instruments
 jobs:
     run-updated-reopen:
         runs-on: ubuntu-latest
-        name: Reopen issue job
+        name: New config job
         steps:
             - name: Checkout
               uses: actions/checkout@v4
             - name: Run issues step
               uses: ./.github/actions/
               with:
-                  workflow-action: reopen-issue
-                  issuenumber: ${{ github.event.issue.number }}
+                  workflow-action: new-config
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
