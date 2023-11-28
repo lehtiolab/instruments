@@ -34,7 +34,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
       } else if (!issue_exist) {
         let duedate = new Date(Date.now());
         const todayDate = duedate.toLocaleDateString('sv-SE');
-        duedate.setDate(today.getDate() + tasks[task].days_interval);
+        duedate.setDate(duedate.getDate() + tasks[task].days_interval);
         const displayDate = duedate.toLocaleDateString('sv-SE');
         await octokit.rest.issues.create({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
@@ -96,7 +96,7 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
 
   let duedate = new Date(Date.now());
   const todayDate = duedate.toLocaleDateString('sv-SE');
-  duedate.setDate(todayDate.getDate() + task.days_interval);
+  duedate.setDate(duedate.getDate() + task.days_interval);
   const displayDate = duedate.toLocaleDateString('sv-SE');
 
   const newbody = getIssueBody(issuedata.instrument, issuedata.task, todayDate, displayDate);
