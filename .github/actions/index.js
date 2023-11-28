@@ -21,7 +21,7 @@ async function getIssues() {
           const lastdate = new Date(issuedata.last_done);
           const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
           console.log(duedate);
-          console.log(last_done);
+          console.log(lastdate);
           console.log(calculated_interval);
           instr_issues[issuedata.instrument][issuedata.task] = {
             label: 0,
