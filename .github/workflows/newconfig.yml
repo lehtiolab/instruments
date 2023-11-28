@@ -19,5 +19,5 @@ jobs:
             - name: Run issues step
               uses: ./.github/actions/
               with:
-                  workflow-action: new-config
+                  workflow-action: config-change
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
