@@ -12,7 +12,6 @@ function getIssues() {
     })
       .then(issues => {
         issues.forEach(x => {
-          console.log(`Issue ${x.number} with body ${x.body} and last opened ?`);
           const issuedata = fm(x.body).attributes;
           instr_issues[issuedata.instrument] = x;
         })
@@ -27,7 +26,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
 
   for (instr of instruments) {
     for (task of instr.tasks) {
-      console.log(`${instr.name}, ${issues}`);
+      console.log(`${instr.name}, ${JSON.stringify(issues)}`);
       issue_exist = instr.name in issues && task in issues[instr.name]
       if (!(task in tasks) && issue_exist) {
           console.log('SHOULD ORPHAN');
