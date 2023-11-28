@@ -1,5 +1,12 @@
 run-name: Config updated, check issues
-on: [push]
+on:
+  push:
+    paths:
+      - './instruments.json'
+      - './tasks.json'
+    branches:
+      - 'master'
+
 
 env:
   GITHUB_REPO_NAME: instruments
