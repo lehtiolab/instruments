@@ -87,7 +87,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
         issueLastdate.setDate(issueLastdate.getDate() + tasks[task].days_interval);
         const displayDueDate = issueLastdate.toLocaleDateString('sv-SE');
 
-        await octokit.rest.issues.setLabels({
+        await octokit.rest.issues.update({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
           issue_number: issue.issuenumber,
