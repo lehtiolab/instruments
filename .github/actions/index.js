@@ -27,7 +27,7 @@ async function getIssues() {
             if (!(issuedata.instrument in instr_issues)) {
               instr_issues[issuedata.instrument] = {};
             }
-            const today = new Date.now()
+            const today = new Date(Date.now());
             const duedate = new Date(issuedata.due);
             const lastdate = new Date(issuedata.last_done);
             const calculated_interval = Math.round((duedate - lastdate) / 1000 / 3600 / 24);
