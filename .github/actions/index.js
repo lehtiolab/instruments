@@ -48,7 +48,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
       if (instr.name in issues && task in issues[instr.name]) {
           issue = issues[instr.name][task];
       }
-      if (!(task in tasks) && issue && issue.label.indexOf(LABELTEXT_ERROR) < 0) {
+      if (!(task in tasks) && issue && issue.labels.indexOf(LABELTEXT_ERROR) < 0) {
         await octokit.rest.issues.setLabels({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
@@ -73,7 +73,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           body: getIssueBody(instr.name, task, todayDate, displayDate),
         })
         // FIXME orphan label if no task exist??
-      } else if (issue.label.indexOf(LABELTEXT_ERROR) > -1) {
+      } else if (issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
         await octokit.rest.issues.setLabels({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
