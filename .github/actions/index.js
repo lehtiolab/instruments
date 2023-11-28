@@ -162,7 +162,7 @@ async function updateLabelsOrderByDate() {
     }
   }
   // most days left will be first
-  orderedIssues.sort(a, b => Number(b.days_left) - Number(a.days_left))
+  orderedIssues.sort((a, b) => Number(b.days_left) - Number(a.days_left))
   for (issue of orderedIssues) {
     let labeltext = '';
     for ([mintext, mindays] of LABELS_ORDER) {
