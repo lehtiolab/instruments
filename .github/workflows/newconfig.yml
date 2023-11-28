@@ -1,5 +1,6 @@
 run-name: Config updated, check issues
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'instruments.json'
