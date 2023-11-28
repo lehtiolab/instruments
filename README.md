@@ -4,7 +4,7 @@ which are displayed as issues in the repo. The issue body text contains the next
 in front-matter YAML format, which can be parsed by the actions.
 
 ## For users
-The issue list can be found sorted [here](/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
+The issue list can be found sorted [here](http://github.com/lehtiolab/instruments/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc)
 
 - [X] JSON files can be edited inside the github interface, which will create git commits
 - [X] Closing an issue marks it as completed and will automatically reopen it with a new due date
