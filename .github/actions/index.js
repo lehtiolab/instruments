@@ -5,7 +5,7 @@ const github = require('@actions/github');
 
 
 function getIssues() {
-  let issues = {};
+  let instr_issues = {};
   octokit.paginate(octokit.rest.issues.listForRepo, {
     owner: process.env.GITHUB_REPOSITORY_OWNER,
     repo: process.env.GITHUB_REPO_NAME,
@@ -13,10 +13,11 @@ function getIssues() {
       .then(issues => {
         issues.forEach(x => {
           console.log(`Issue ${x.number} with body ${x.body} and last opened ?`);
-          console.log(JSON.stringify(x));
+          const issuedata = fm(x.body).attributes;
+          instr_issues[issuedata.instrument] = x;
         })
       })
-  return issues;
+  return instr_issues;
 }
 
 // FIXME enum for labels (text, color)
