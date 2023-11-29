@@ -103,6 +103,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
       }
     }
   }
+  console.log(JSON.stringify(instruments));
   for ([issue_instr, issuetasks] of Object.entries(issues)) {
     for ([issuetask, issuedata] of Object.entries(issuetasks)) {
       if (!(issue_instr in instruments && issuedata.task in instruments[issue_instr].tasks)) {
