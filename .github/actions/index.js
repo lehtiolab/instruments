@@ -76,7 +76,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
           title: getTitle(displayDate, tasks[task].description, ins_name),
           body: getIssueBody(ins_name, task, todayDate, displayDate),
         })
-      } else if (issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
+      } else if (issue && issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
         console.log(`Removing error label from issue ${ins_name}/${task}`);
         await octokit.rest.issues.setLabels({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
