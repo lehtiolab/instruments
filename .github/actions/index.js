@@ -106,7 +106,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
   }
   for ([issue_instr, issuetasks] of Object.entries(issues)) {
     for ([issuetask, issuedata] of Object.entries(issuetasks)) {
-      if (!(issue_instr in instruments && instruments[issue_instr].tasks.indexOf(issudata.task)>-1)) {
+      if (!(issue_instr in instruments && instruments[issue_instr].tasks.indexOf(issuedata.task)>-1)) {
         console.log(`Closing issue ${issuedata.instrument}/${issuedata.task}`);
         await octokit.rest.issues.update({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
