@@ -110,7 +110,7 @@ async function checkEditedInstrumentsOrTasks(instruments, tasks) {
         await octokit.rest.issues.update({
           owner: process.env.GITHUB_REPOSITORY_OWNER,
           repo: process.env.GITHUB_REPO_NAME,
-          issue_number: issue.issuenumber,
+          issue_number: issuedata.issuenumber,
           state: 'closed',
         });
       }
