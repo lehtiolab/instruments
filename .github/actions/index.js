@@ -19,6 +19,7 @@ async function getIssues() {
   await octokit.paginate(octokit.rest.issues.listForRepo, {
     owner: process.env.GITHUB_REPOSITORY_OWNER,
     repo: process.env.GITHUB_REPO_NAME,
+    state: 'all',
     })
       .then(issues => {
         issues.forEach(x => {
