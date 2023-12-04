@@ -9,7 +9,7 @@
     {
         "name": "solvent",
         "description": "Replace solvent",
-        "days_interval": 5
+        "days_interval": 30
     },
         {
         "name": "fake",
