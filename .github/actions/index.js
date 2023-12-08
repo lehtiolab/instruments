@@ -196,33 +196,31 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
 }
 
 
+async function main(action, tasks) {
+  if (action == 'reopen-issue') {
+    // When an issue is closed
+    issuenumber = core.getInput('issuenumber');
+    await reopenIssueAndSetDueDate(issuenumber, tasks);
+    updateLabelsOrderByDate();
+  
+  } else if (action == 'update-labels') {
+    // E.g run each night to update labels
+    updateLabelsOrderByDate();
+  
+  } else if (action == 'config-change') {
+    const instruments = Object.fromEntries(JSON.parse(fs.readFileSync('instruments.json', 'utf-8')).map(x => [x.name, x]));
+  
+    await checkEditedInstrumentsOrTasks(instruments, tasks);
+    updateLabelsOrderByDate();
+    // When instruments/tasks change
+  }
+}
+
+
 const token = core.getInput('repo-token');
 const action = core.getInput('workflow-action');
 const octokit = github.getOctokit(token);
-
 const tasklist = JSON.parse(fs.readFileSync('tasks.json', 'utf-8'));
 const tasks = Object.fromEntries(tasklist.map(x => [x.name, x]));
 
-if (action == 'reopen-issue') {
-  // When an issue is closed
-  issuenumber = core.getInput('issuenumber');
-  reopenIssueAndSetDueDate(issuenumber, tasks);
-  updateLabelsOrderByDate();
-
-} else if (action == 'update-labels') {
-  // E.g run each night to update labels
-  updateLabelsOrderByDate();
-
-} else if (action == 'config-change') {
-  const instruments = Object.fromEntries(JSON.parse(fs.readFileSync('instruments.json', 'utf-8')).map(x => [x.name, x]));
-
-  checkEditedInstrumentsOrTasks(instruments, tasks);
-  updateLabelsOrderByDate();
-  // When instruments/tasks change
-
-}
-
-// if /case switch for commands
-//console.log(instruments);
-//console.log(tasks);
-
+main(action, tasks);
