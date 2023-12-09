@@ -1,6 +1,10 @@
 run-name: Updating and labeling all issues
 on:
-    workflow_dispatch:
+    schedule:
+      # * needs quoting in YAML
+      - cron: '0 3 * * *'
+
+
 env:
   GITHUB_REPO_NAME: instruments
 jobs:
