@@ -1,6 +1,5 @@
 run-name: Reopening and updating issue
 on:
-    workflow_dispatch:
     issues:
       types: [closed]
 env:
