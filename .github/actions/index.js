@@ -151,7 +151,8 @@ async function updateLabelsOrderByDate() {
   // most days left will be first
   orderedIssues.sort((a, b) => Number(b.days_left) - Number(a.days_left))
   for (issue of orderedIssues) {
-    if (issue.labels.indexOf(LABELTEXT_ERROR) > -1) {
+    if (issue.labels.indexOf(LABELTEXT_ERROR) === -1) {
+      // Skip errored issues
       let labeltext = '';
       for ([mintext, mindays] of LABELS_ORDER) {
         labeltext = mintext;
