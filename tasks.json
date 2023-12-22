@@ -5,6 +5,12 @@
         "days_interval": 15
     },
 
+       {
+        "name": "newtask",
+        "description": "Bla bla",
+        "days_interval": 5
+    },
+
 
     {
         "name": "solvent",
