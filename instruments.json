@@ -6,7 +6,7 @@
   
     {
     "name": "Fred",
-    "tasks": ["solvent"]
+    "tasks": ["solvent", "newtask"]
   }
 
 ]
