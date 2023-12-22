@@ -186,7 +186,7 @@ async function reopenIssueAndSetDueDate(issuenumber, tasks) {
   const displayDate = duedate.toLocaleDateString('sv-SE');
 
   const newbody = getIssueBody(issuedata.instrument, issuedata.task, todayDate, displayDate);
-  octokit.rest.issues.update({
+  await octokit.rest.issues.update({
     owner: process.env.GITHUB_REPOSITORY_OWNER,
     repo: process.env.GITHUB_REPO_NAME,
     issue_number: issuenumber,
