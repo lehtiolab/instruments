@@ -1,26 +1,20 @@
 [
     {
-        "name": "toothbrush",
-        "description": "Clean quadropole trap",
-        "days_interval": 15
+        "name": "column",
+        "description": "Change column",
+        "days_interval": 30
     },
 
        {
-        "name": "newtask",
-        "description": "Bla bla",
-        "days_interval": 5
+        "name": "capillary",
+        "description": "Change the glass capillary",
+        "days_interval": 90
     },
 
 
     {
         "name": "solvent",
         "description": "Replace solvent",
-        "days_interval": 30
-    },
-        {
-        "name": "fake",
-        "description": "Replace fake",
         "days_interval": 14
-    }
-
+    },
 ]
