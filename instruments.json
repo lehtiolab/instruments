@@ -1,12 +1,22 @@
 [
   {
     "name": "Leia",
-    "tasks": ["solvent", "toothbrush", "fake"]
+    "tasks": ["solvent", "column"]
   },
-  
+
+  {
+    "name": "Henry",
+    "tasks": ["solvent", "column", "capillary"]
+  },
+
+    {
+    "name": "Percy",
+    "tasks": ["solvent", "column", "capillary"]
+  },
+
     {
     "name": "Fred",
-    "tasks": ["solvent", "newtask"]
+    "tasks": ["solvent", "column", "capillary"]
   }
 
 ]
